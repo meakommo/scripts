@@ -1,25 +1,34 @@
 #!/bin/bash
-sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-declare -A clients
-clients[TEST]="ad.rgs.nz"
-clients[GEMS]="ruby.local"
+declare -a clients
+clients[1]="ad.rgs.nz"
+clients[2]="ruby.local"
+
+declare -a clientallstaff
+clientallstaff[1]="domainusers@ad.rgs.nz"
+clientallstaff[2]="ad.allstaff@livinggems.com.au"
+
+declare -a netusrnme
+netusrnme[1]=kale.hembrow
+netusrnme[2]=ad.admin
+
+
 
 echo "Supported Client Codes \n
-GEMS"
-echo "Please enter the client code"
+1 = TEST \n
+2 = GEMS \n"
+echo "Please enter the client code 1-9"
 read clientCode
+echo "Enter the Password for a domain administrator"
+read passwd
+localaccount= whoami
+echo $localaccount
 
-echo "Please enter Domain admin account details"
-echo "Username"
-read username
-echo "Please enter the destination OU"
-read orgunit
+rc= ping -c 1 ${clients[$clientCode]}
 
-
-sudo dsconfigad -a $HOSTNAME -u $username -ou $orgunit -domain client[$clientCode] -mobile enable -mobileconfirm enable -localhome enable -useuncpath enable -alldomains enable -status
-
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -off -restart -agent -privs -all -allowAccessFor -allUsers
-sleep 60
-echo "The computer will reboot in 60 seconds"
-shutdown -r now
+if [[ $rc -eq 0 ]]; then
+	dsconfigad -force -computer adm-mac -domain ${clients[$clientCode]} -username ${netusrnme[$clientCode]} -p $passwd -mobile enable -mobileconfirm disable -localhome enable -useuncpath enable -alldomains enable -groups ${clientallstaff[$clientCode]}
+else
+	echo "Unable to ping domain, check your connection to the domain and try again. \n EXITING!"
+	break
+fi
