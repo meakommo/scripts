@@ -25,10 +25,17 @@ localaccount= whoami
 echo $localaccount
 
 rc= ping -c 1 ${clients[$clientCode]}
+joindom=$( dsconfigad -show | awk '/Active Directory Domain/{print $NF}' )
 
-if [[ $rc -eq 0 ]]; then
-	dsconfigad -force -computer adm-mac -domain ${clients[$clientCode]} -username ${netusrnme[$clientCode]} -p $passwd -mobile enable -mobileconfirm disable -localhome enable -useuncpath enable -alldomains enable -groups ${clientallstaff[$clientCode]}
-else
-	echo "Unable to ping domain, check your connection to the domain and try again. \n EXITING!"
+if [[ $joindom == ${clients[$clientCode]} ]]; then
+	echo "\n\nThe computer is already joined to" ${clients[$clientCode]} "\n\nEXITING\n\n"
 	break
+else
+	if [[ $rc -eq 0 ]]; then
+		dsconfigad -force -computer adm-mac -domain ${clients[$clientCode]} -username ${netusrnme[$clientCode]} -p $passwd -mobile enable -mobileconfirm disable -localhome enable -useuncpath enable -alldomains enable -groups ${clientallstaff[$clientCode]}
+	else
+		echo "Unable to ping domain, check your connection to the domain and try again. \n EXITING!"
+		break
+	fi
 fi
+
